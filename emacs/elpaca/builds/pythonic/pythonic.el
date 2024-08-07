@@ -1,0 +1,1 @@
+/home/rohit/.config/emacs/elpaca/repos/pythonic/pythonic.el

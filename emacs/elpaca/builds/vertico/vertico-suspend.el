@@ -1,0 +1,1 @@
+/home/rohit/.config/emacs/elpaca/repos/vertico/extensions/vertico-suspend.el

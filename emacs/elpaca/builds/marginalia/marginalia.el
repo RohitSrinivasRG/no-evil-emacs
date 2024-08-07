@@ -1,0 +1,1 @@
+/home/rohit/.config/emacs/elpaca/repos/marginalia/marginalia.el
