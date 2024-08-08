@@ -48,24 +48,30 @@
 
 (setq backup-directory-alist '((".*" . "~/.local/share/Trash/files")))
 
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+
+(set-language-environment "UTF-8")
+
 (use-package general
   :config
   (general-create-definer rgrs-leader-keys
     :prefix "C-x")
-  (rgrs-leader-keys
-    ;; "b" '(:ignore t :wk "buffer")
-    "b" '(consult-buffer :wk "Switch buffer")
-    )
+  ;; (rgrs-leader-keys
+  ;;   ;; "b" '(:ignore t :wk "buffer")
+  ;;   "b" '(consult-buffer :wk "Switch buffer")
+  ;;   )
 
   ;; GIT
-  (global-unset-key (kbd "C-x g"))
-  (rgrs-leader-keys
-    "g" `(:ignore t :wk "Magit")
-    "g c" `(magit-clone :wk "Magit Clone")
-    "g g" `(magit-status :wk "Magit status")
-    "g i" `(magit-init :wk "Magit Init repo")
+  ;; (global-unset-key (kbd "C-x g"))
+  ;; (rgrs-leader-keys
+  ;;   "g" `(:ignore t :wk "Magit")
+  ;;   "g c" `(magit-clone :wk "Magit Clone")
+  ;;   "g g" `(magit-status :wk "Magit status")
+  ;;   "g i" `(magit-init :wk "Magit Init repo")
     
-    )
+  ;;   )
   (general-define-key
     "<f7>" `display-line-numbers-mode)
      
@@ -93,6 +99,30 @@
 (electric-indent-mode -1)
 (setq org-edit-src-content-indentation 0)
 
+;; A few more useful configurations...
+(use-package emacs
+  :ensure nil
+  :custom
+  ;; Support opening new minibuffers from inside existing minibuffers.
+  (enable-recursive-minibuffers t)
+  ;; Emacs 28 and newer: Hide commands in M-x which do not work in the current
+  ;; mode.  Vertico commands are hidden in normal buffers. This setting is
+  ;; useful beyond Vertico.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+)
+
 (use-package rainbow-delimiters
 :config
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
@@ -100,12 +130,18 @@
 (use-package rainbow-mode
 :hook org-mode prog-mode)
 
-(use-package magit)
-(use-package transient)
+(use-package magit
+  :config
+  (global-unset-key (kbd "C-x g"))
+  (rgrs-leader-keys
+    "g" `(:ignore t :wk "Magit")
+    "g c" `(magit-clone :wk "Magit Clone")
+    "g g" `(magit-status :wk "Magit status")
+    "g i" `(magit-init :wk "Magit Init repo")
+    )
 
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+)
+(use-package transient)
 
 (add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
 
@@ -118,6 +154,29 @@
 (setq custom-safe-themes t)
 (add-hook 'elpaca-after-init-hook (lambda() (load-theme 'doom-gruvbox)))
 
+(use-package doom-modeline
+  :ensure t
+  :init
+  ;; (setq doom-modeline-support-imenu t) 
+  (doom-modeline-mode 1)
+  )
+
+(use-package nerd-icons)
+
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+(use-package nerd-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
 (winner-mode 1)
 
 (use-package orderless
@@ -129,11 +188,22 @@
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
-(use-package consult)
+(use-package consult
+  :bind (
+	 ("C-x b" . consult-buffer)
+	 ("M-g i" . consult-imenu)
+	 )
+)
 
 (use-package vertico
   :init
   (vertico-mode))
+
+(use-package savehist
+  :ensure nil
+  :init
+  (savehist-mode))
+
 (setq enable-recursive-minibuffers t)
 
 ;; Enable rich annotations using the Marginalia package

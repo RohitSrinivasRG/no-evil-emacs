@@ -1,7 +1,7 @@
 * TABLE OF CONTENT :TOC_2:
 - [[#general][GENERAL]]
   - [[#elpaca][ELPACA]]
-  - [[#backup][BACKUP]]
+  - [[#must-have][MUST-HAVE]]
   - [[#keybinds][KEYBINDS]]
 - [[#org][ORG]]
   - [[#table-of-content][Table of Content]]
@@ -10,13 +10,15 @@
   - [[#source-code-tag-expansion][Source code Tag Expansion]]
   - [[#disable-electric-indent][Disable Electric Indent]]
 - [[#editor][EDITOR]]
+  - [[#emacs-config][EMACS-CONFIG]]
   - [[#rainbow-delimiters][RAINBOW DELIMITERS]]
   - [[#rainbow-mode][RAINBOW MODE]]
 - [[#git][GIT]]
   - [[#magit][MAGIT]]
 - [[#gui-tweaks][GUI TWEAKS]]
-  - [[#disable-menutoolscroll-bar][DISABLE MENU,TOOL,SCROLL BAR]]
   - [[#themes][THEMES]]
+  - [[#doom-modeline][DOOM-MODELINE]]
+  - [[#nerd-icons][NERD-ICONS]]
 - [[#window-managment][WINDOW MANAGMENT]]
   - [[#winner-undo][WINNER UNDO]]
 - [[#minibuffer][MINIBUFFER]]
@@ -85,31 +87,42 @@
 (elpaca-wait)
 #+end_src
 
-** BACKUP
+** MUST-HAVE
+- Removes Backup files created by Emacs
 #+begin_src emacs-lisp
 (setq backup-directory-alist '((".*" . "~/.local/share/Trash/files")))
 #+end_src
 
+- Removes menubar scrollbar and taskbar in emacs gui
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+#+end_src
+- Force UTF-8
+#+begin_src emacs-lisp
+(set-language-environment "UTF-8")
+#+end_src
 ** KEYBINDS
 #+begin_src emacs-lisp 
 (use-package general
   :config
   (general-create-definer rgrs-leader-keys
     :prefix "C-x")
-  (rgrs-leader-keys
-    ;; "b" '(:ignore t :wk "buffer")
-    "b" '(consult-buffer :wk "Switch buffer")
-    )
+  ;; (rgrs-leader-keys
+  ;;   ;; "b" '(:ignore t :wk "buffer")
+  ;;   "b" '(consult-buffer :wk "Switch buffer")
+  ;;   )
 
   ;; GIT
-  (global-unset-key (kbd "C-x g"))
-  (rgrs-leader-keys
-    "g" `(:ignore t :wk "Magit")
-    "g c" `(magit-clone :wk "Magit Clone")
-    "g g" `(magit-status :wk "Magit status")
-    "g i" `(magit-init :wk "Magit Init repo")
+  ;; (global-unset-key (kbd "C-x g"))
+  ;; (rgrs-leader-keys
+  ;;   "g" `(:ignore t :wk "Magit")
+  ;;   "g c" `(magit-clone :wk "Magit Clone")
+  ;;   "g g" `(magit-status :wk "Magit status")
+  ;;   "g i" `(magit-init :wk "Magit Init repo")
     
-    )
+  ;;   )
   (general-define-key
     "<f7>" `display-line-numbers-mode)
      
@@ -155,6 +168,33 @@
 #+end_src
 
 * EDITOR
+** EMACS-CONFIG
+#+begin_src emacs-lisp
+;; A few more useful configurations...
+(use-package emacs
+  :ensure nil
+  :custom
+  ;; Support opening new minibuffers from inside existing minibuffers.
+  (enable-recursive-minibuffers t)
+  ;; Emacs 28 and newer: Hide commands in M-x which do not work in the current
+  ;; mode.  Vertico commands are hidden in normal buffers. This setting is
+  ;; useful beyond Vertico.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+)
+
+#+end_src
 ** RAINBOW DELIMITERS
 #+begin_src emacs-lisp 
 (use-package rainbow-delimiters
@@ -171,17 +211,20 @@
 * GIT
 ** MAGIT
 #+begin_src emacs-lisp
-(use-package magit)
+(use-package magit
+  :config
+  (global-unset-key (kbd "C-x g"))
+  (rgrs-leader-keys
+    "g" `(:ignore t :wk "Magit")
+    "g c" `(magit-clone :wk "Magit Clone")
+    "g g" `(magit-status :wk "Magit status")
+    "g i" `(magit-init :wk "Magit Init repo")
+    )
+
+)
 (use-package transient)
 #+end_src
 * GUI TWEAKS
-** DISABLE MENU,TOOL,SCROLL BAR
-#+begin_src emacs-lisp
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-#+end_src
-
 ** THEMES
 #+begin_src emacs-lisp
 (add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
@@ -195,7 +238,37 @@
 (setq custom-safe-themes t)
 (add-hook 'elpaca-after-init-hook (lambda() (load-theme 'doom-gruvbox)))
 #+end_src
+** DOOM-MODELINE
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :ensure t
+  :init
+  ;; (setq doom-modeline-support-imenu t) 
+  (doom-modeline-mode 1)
+  )
 
+#+end_src
+** NERD-ICONS
+#+begin_src emacs-lisp
+(use-package nerd-icons)
+
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+(use-package nerd-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+
+
+#+end_src
 * WINDOW MANAGMENT
 ** WINNER UNDO
 #+begin_src emacs-lisp
@@ -216,7 +289,12 @@
 #+end_src
 ** CONSULT
 #+begin_src emacs-lisp
-(use-package consult)
+(use-package consult
+  :bind (
+	 ("C-x b" . consult-buffer)
+	 ("M-g i" . consult-imenu)
+	 )
+)
 #+end_src
 
 ** VERTICO
@@ -224,6 +302,12 @@
 (use-package vertico
   :init
   (vertico-mode))
+
+(use-package savehist
+  :ensure nil
+  :init
+  (savehist-mode))
+
 (setq enable-recursive-minibuffers t)
 #+end_src
 
