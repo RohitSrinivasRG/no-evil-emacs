@@ -78,7 +78,7 @@
   )
 
 (use-package toc-org
-  :commands toc-org-enable
+  :commands toc-org-enablepp
   :init (add-hook 'org-mode-hook 'toc-org-enable))
 
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -95,9 +95,26 @@
 '(org-level-7 ((t (:inherit outline-5 :height 1.1)))))
 
 (require `org-tempo)
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 (electric-indent-mode -1)
 (setq org-edit-src-content-indentation 0)
+
+(use-package avy
+  :config
+  (general-define-key "C-:" `avy-goto-char)
+  (general-define-key "C-." `avy-goto-char-2)
+  (avy-setup-default)
+  (global-set-key (kbd "C-c C-j") 'avy-resume)
+   )
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :config
+  (setq insert-directory-program "ls" dired-use-ls-dired nil)
+  (setq dired-listing-switches "-agho --group-directories-first")
+  )
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -122,6 +139,15 @@
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
 )
+(setopt use-short-answers t)
+
+(use-package multiple-cursors
+  :config
+  (general-define-key "C-S-c C-S-c" 'mc/edit-lines)
+  (general-define-key "C->" 'mc/mark-next-like-this-word)
+  (general-define-key "C-<" 'mc/mark-previous-like-this-word)
+  (general-define-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
+  )
 
 (use-package rainbow-delimiters
 :config
@@ -129,6 +155,119 @@
 
 (use-package rainbow-mode
 :hook org-mode prog-mode)
+
+(use-package vterm
+:config
+(setq shell-file-name "/usr/bin/bash")
+(add-to-list 'vterm-tramp-shells '("ssh" "/bin/bash"))
+(add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))
+)
+
+
+(use-package vterm-toggle
+  :after vterm
+  :config
+  (setq vterm-toggle-fullscreen-p nil)
+  (setq vterm-toggle-scope 'project)
+  (add-to-list 'display-buffer-alist
+               '((lambda (buffer-or-name _)
+                     (let ((buffer (get-buffer buffer-or-name)))
+                       (with-current-buffer buffer
+                         (or (equal major-mode 'vterm-mode)
+                             (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
+                  (display-buffer-reuse-window display-buffer-at-bottom)
+                  ;;(display-buffer-reuse-window display-buffer-in-direction)
+                  ;;display-buffer-in-direction/direction/dedicated is added in emacs27
+                  ;;(direction . bottom)
+                  ;;(dedicated . t) ;dedicated is supported in emacs27
+                  (reusable-frames . visible)
+                  (window-height . 0.3))))
+
+(use-package multi-vterm 
+:after vterm    
+:ensure t)
+
+(use-package smartparens
+:config
+(smartparens-global-mode))
+
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-separator ?_)          ;; Orderless field separator
+  (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
+  ;; be used globally (M-/).  See also the customization variable
+  ;; `global-corfu-modes' to exclude certain modes.
+  ;; :init
+  ;; (global-corfu-mode)
+  )
+
+(add-hook 'elpaca-after-init-hook 'global-corfu-mode)
+;; Enable Corfu completion UI
+;; See the Corfu README for more configuration tips.
+;; Add extensions
+
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-elisp-symbol)
+         ("C-c p e" . cape-elisp-block)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p l" . cape-line)
+         ("C-c p w" . cape-dict)
+         ("C-c p :" . cape-emoji)
+         ("C-c p \\" . cape-tex)
+         ("C-c p _" . cape-tex)
+         ("C-c p ^" . cape-tex)
+         ("C-c p &" . cape-sgml)
+         ("C-c p r" . cape-rfc1345))
+  :init
+  ;; Add to the global default value of `completion-at-point-functions' which is
+  ;; used by `completion-at-point'.  The order of the functions matters, the
+  ;; first function returning a result wins.  Note that the list of buffer-local
+  ;; completion functions takes precedence over the global list.
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  ;;(add-hook 'completion-at-point-functions #'cape-history)
+  ;;(add-hook 'completion-at-point-functions #'cape-keyword)
+  ;;(add-hook 'completion-at-point-functions #'cape-tex)
+  ;;(add-hook 'completion-at-point-functions #'cape-sgml)
+  ;;(add-hook 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-hook 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-hook 'completion-at-point-functions #'cape-dict)
+  ;;(add-hook 'completion-at-point-functions #'cape-elisp-symbol)
+  ;;(add-hook 'completion-at-point-functions #'cape-line)
+)
+
+;; (use-package kind-icon
+;;   :ensure t
+;;   :after corfu
+;;   ;:custom
+;;   ; (kind-icon-blend-background t)
+;;   ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+;;   :config
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package magit
   :config
@@ -142,6 +281,12 @@
 
 )
 (use-package transient)
+
+(use-package anzu
+:config
+(global-anzu-mode 1)
+(general-define-key [remap query-replace] 'anzu-query-replace)
+(general-define-key [remap query-replace-regexp] 'anzu-query-replace-regexp))
 
 (add-to-list 'custom-theme-load-path "~/.config/emacs/themes/")
 
@@ -160,6 +305,15 @@
   ;; (setq doom-modeline-support-imenu t) 
   (doom-modeline-mode 1)
   )
+(setq doom-modeline-project-detection 'auto)
+
+;; Specification of \"percentage offset\" of window through buffer.
+(setq doom-modeline-percent-position '(-3 "%p"))
+
+;; ;; Format used to display line numbers in the mode line. Also used to display column for some reason
+(setq doom-modeline-position-line-format '("%l:%c"))
+(setq doom-modeline-buffer-state-icon t)
+(setq doom-modeline-enable-word-count nil)
 
 (use-package nerd-icons)
 
@@ -177,7 +331,43 @@
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
+(use-package nerd-icons-corfu
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+)
+
+
+;; Optionally:
+;; (setq nerd-icons-corfu-mapping
+;;       '((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+;;         (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+;;         ;; ...
+;;         (t :style "cod" :icon "code" :face font-lock-warning-face)))
+;; Remember to add an entry for `t', the library uses that as default.
+
+;; The Custom interface is also supported for tuning the variable above.
+
+(use-package dimmer
+:config
+(dimmer-configure-which-key)
+(dimmer-mode t))
+
 (winner-mode 1)
+
+(use-package winum
+:config
+(winum-mode))
+
+(global-set-key (kbd "C-0") 'winum-select-window-0)
+(global-set-key (kbd "C-1") 'winum-select-window-1)
+(global-set-key (kbd "C-2") 'winum-select-window-2)
+(global-set-key (kbd "C-3") 'winum-select-window-3)
+(global-set-key (kbd "C-4") 'winum-select-window-4)
+(global-set-key (kbd "C-5") 'winum-select-window-5)
+(global-set-key (kbd "C-6") 'winum-select-window-6)
+(global-set-key (kbd "C-7") 'winum-select-window-7)
+(global-set-key (kbd "C-8") 'winum-select-window-8)
 
 (use-package orderless
   :init
@@ -192,6 +382,17 @@
   :bind (
 	 ("C-x b" . consult-buffer)
 	 ("M-g i" . consult-imenu)
+	 ("C-x r b" . consult-bookmark)
+	 ("M-s l" . consult-line)
+	 ("M-s g" . consult-grep)
+	 ("M-s r" . consult-ripgrep)
+	 ("M-g g" . consult-goto-line) 
+	 ("M-g M-g" . consult-goto-line)
+	 ("C-x p b" . consult-project-buffer)
+	 ;; M-s bindings in `search-map'
+	 ("M-s d" . consult-find) 
+	 ("M-s k" . consult-keep-lines)
+	 ("M-s u" . consult-focus-lines)
 	 )
 )
 
@@ -239,6 +440,17 @@
         which-key-allow-imprecise-window-fit nil
         which-key-separator " → " ))
 
+(use-package indent-bars
+  :ensure (:host github :repo "jdtsmith/indent-bars")
+  :hook ((bsv-mode) . indent-bars-mode)
+  )
+
+(use-package isearch
+  :ensure nil
+  :bind
+  ("C-*" . 'isearch-forward-symbol-at-point)
+  )
+
 (use-package kbd-mode 
   :ensure (:host github :repo "kmonad/kbd-mode")
   ;;(kbd-mode-kill-kmonad "pkill -9 kmonad")
@@ -280,3 +492,16 @@
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
+
+(defun rgrs/spc_4_indent ()
+ "Updates the indent tabs mode to nil"
+(interactive)
+(setq indent-tabs-mode nil))
+
+(defun rgrs/test_print ()
+ "Updates the indent tabs mode to nil"
+(interactive)
+(message "Mode loaded;LMAO bsv-mode-hook working"))
+(add-hook 'bsv-mode-hook #'rgrs/spc_4_indent)
+(add-hook 'bsv-mode-hook 'rgrs/test_print)
+(add-hook 'prog-hook #'rgrs/spc_4_indent)
