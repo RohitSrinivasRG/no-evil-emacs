@@ -102,8 +102,8 @@
 
 (use-package avy
   :config
-  (general-define-key "C-:" `avy-goto-char)
-  (general-define-key "C-." `avy-goto-char-2)
+  (general-define-key "M-s-c" `avy-goto-char)
+  (general-define-key "M-s-C" `avy-goto-char-2)
   (avy-setup-default)
   (global-set-key (kbd "C-c C-j") 'avy-resume)
    )
@@ -114,6 +114,7 @@
   :config
   (setq insert-directory-program "ls" dired-use-ls-dired nil)
   (setq dired-listing-switches "-agho --group-directories-first")
+  (setq dired-dwim-target t)
   )
 
 ;; A few more useful configurations...
@@ -304,16 +305,21 @@
   :init
   ;; (setq doom-modeline-support-imenu t) 
   (doom-modeline-mode 1)
+  :config
+  (setq doom-modeline-project-detection 'auto)
+
+  ;; Specification of \"percentage offset\" of window through buffer.
+  (setq doom-modeline-percent-position '(-3 "%p"))
+
+  ;; ;; Format used to display line numbers in the mode line. Also used to display column for some reason
+  (setq doom-modeline-position-line-format '("%l:%c"))
+  (setq doom-modeline-buffer-state-icon t)
+  (setq doom-modeline-enable-word-count nil)
+  (setq doom-modeline-time-icon t)
+  (setq doom-modeline-time-live-icon t)
+  (setq doom-modeline-time-analogue-clock t)
+
   )
-(setq doom-modeline-project-detection 'auto)
-
-;; Specification of \"percentage offset\" of window through buffer.
-(setq doom-modeline-percent-position '(-3 "%p"))
-
-;; ;; Format used to display line numbers in the mode line. Also used to display column for some reason
-(setq doom-modeline-position-line-format '("%l:%c"))
-(setq doom-modeline-buffer-state-icon t)
-(setq doom-modeline-enable-word-count nil)
 
 (use-package nerd-icons)
 
@@ -442,7 +448,7 @@
 
 (use-package indent-bars
   :ensure (:host github :repo "jdtsmith/indent-bars")
-  :hook ((bsv-mode) . indent-bars-mode)
+  :hook ((prog-mode) . indent-bars-mode)
   )
 
 (use-package isearch
@@ -450,6 +456,15 @@
   :bind
   ("C-*" . 'isearch-forward-symbol-at-point)
   )
+
+(use-package magit-todos
+  :after magit
+  :config (magit-todos-mode 1))
+
+(use-package consult-project-extra
+  :bind
+  (("C-c p f" . consult-project-extra-find)
+   ("C-c p o" . consult-project-extra-find-other-window)))
 
 (use-package kbd-mode 
   :ensure (:host github :repo "kmonad/kbd-mode")
