@@ -3687,7 +3687,7 @@ Key bindings specific to `bsv-mode-map' are:
   (when (boundp 'hs-special-modes-alist)
     (unless (assq 'bsv-mode hs-special-modes-alist)
       (setq hs-special-modes-alist
-	    (cons '(bsv-mode-mode  "\\<begin\\>" "\\<end\\>" nil
+	    (cons '(bsv-mode  "\\<begin\\>" "\\<end\\>" nil
 				       bsv-forward-sexp-function)
 		  hs-special-modes-alist))))
 

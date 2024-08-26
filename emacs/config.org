@@ -34,6 +34,11 @@
 - [[#isearch][ISEARCH]]
 - [[#magit-todos][MAGIT-TODOS]]
 - [[#consult-project][CONSULT-PROJECT]]
+- [[#drag-stuff][DRAG-STUFF]]
+- [[#good-scroll][GOOD-SCROLL]]
+- [[#git-gutter][GIT-GUTTER]]
+- [[#beacon][BEACON]]
+- [[#solaire-mode][SOLAIRE-MODE]]
 - [[#languages][LANGUAGES]]
   - [[#kbd-mode][KBD-MODE]]
   - [[#bsv][BSV]]
@@ -300,8 +305,18 @@ Current Expansions include [[https://orgmode.org/manual/Structure-Templates.html
                   (window-height . 0.3))))
 
 (use-package multi-vterm 
-:after vterm    
-:ensure t)
+  :after vterm    
+  :ensure t
+  :bind 
+  (
+   ("C-c t t" . multi-vterm-dedicated-toggle)
+   ("C-c t n" . multi-vterm)
+   ("C-c t p" . multi-vterm-project)
+   )
+  :config
+  (setq multi-vterm-dedicated-window-height-percent 30)
+  
+)
 #+end_src
 
 * SMARTPARENS
@@ -643,6 +658,50 @@ Current Expansions include [[https://orgmode.org/manual/Structure-Templates.html
   (("C-c p f" . consult-project-extra-find)
    ("C-c p o" . consult-project-extra-find-other-window)))
 #+end_src
+
+* DRAG-STUFF
+#+begin_src emacs-lisp
+(use-package drag-stuff
+  :config
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys)
+  )
+#+end_src
+
+* GOOD-SCROLL
+#+begin_src emacs-lisp
+(use-package good-scroll
+  :config
+  (good-scroll-mode 1)
+  (global-set-key [next] #'good-scroll-up-full-screen)
+  (global-set-key [prior] #'good-scroll-down-full-screen)
+)
+#+end_src
+
+* GIT-GUTTER
+#+begin_src emacs-lisp
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode 1)
+)
+#+end_src
+
+* BEACON
+#+begin_src emacs-lisp
+(use-package beacon
+  :config
+  (beacon-mode 1)
+)
+#+end_src
+
+* SOLAIRE-MODE
+#+begin_src emacs-lisp
+(use-package solaire-mode
+  :config
+  (solaire-global-mode +1)
+)
+#+end_src
+
 * LANGUAGES
 ** KBD-MODE
 #+begin_src emacs-lisp

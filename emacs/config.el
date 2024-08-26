@@ -185,8 +185,18 @@
                   (window-height . 0.3))))
 
 (use-package multi-vterm 
-:after vterm    
-:ensure t)
+  :after vterm    
+  :ensure t
+  :bind 
+  (
+   ("C-c t t" . multi-vterm-dedicated-toggle)
+   ("C-c t n" . multi-vterm)
+   ("C-c t p" . multi-vterm-project)
+   )
+  :config
+  (setq multi-vterm-dedicated-window-height-percent 30)
+  
+)
 
 (use-package smartparens
 :config
@@ -465,6 +475,34 @@
   :bind
   (("C-c p f" . consult-project-extra-find)
    ("C-c p o" . consult-project-extra-find-other-window)))
+
+(use-package drag-stuff
+  :config
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys)
+  )
+
+(use-package good-scroll
+  :config
+  (good-scroll-mode 1)
+  (global-set-key [next] #'good-scroll-up-full-screen)
+  (global-set-key [prior] #'good-scroll-down-full-screen)
+)
+
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode 1)
+)
+
+(use-package beacon
+  :config
+  (beacon-mode 1)
+)
+
+(use-package solaire-mode
+  :config
+  (solaire-global-mode +1)
+)
 
 (use-package kbd-mode 
   :ensure (:host github :repo "kmonad/kbd-mode")
